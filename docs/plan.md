@@ -1,0 +1,111 @@
+- **Title:** ClauseClear MVP Minimal Implementation Plan
+- **Summary:** Next.js App Router + Supabase Auth + Supabase Postgres + Gemini single-request analysis + per-user daily quota + Vercel deployment in 2-day scope.
+- **1. Project Folder Structure**
+- `app/layout.tsx`
+- `app/(public)/page.tsx`
+- `app/auth/callback/route.ts`
+- `app/dashboard/page.tsx`
+- `app/api/analyze/route.ts`
+- `app/api/analyses/route.ts`
+- `components/login-button.tsx`
+- `components/upload-form.tsx`
+- `components/analysis-history.tsx`
+- `lib/supabase/client.ts`
+- `lib/supabase/server.ts`
+- `lib/auth-session.ts`
+- `lib/pdf-extract.ts`
+- `lib/gemini-analyze.ts`
+- `lib/rate-limit.ts`
+- `types/analysis.ts`
+- `supabase/migrations/0001_clauseclear_init.sql`
+- `.env.example`
+- `middleware.ts`
+- `next.config.ts`
+- `package.json`
+- **2. Implementation Stages (MAX 7 stages)**
+- `Stage 1:` Bootstrap Next.js App Router project, Supabase client utilities, env scaffold, base routes.
+- `Stage 2:` Configure Google OAuth with Supabase Auth, callback handler, middleware-protected dashboard access.
+- `Stage 3:` Define public interfaces/types: `POST /api/analyze`, `GET /api/analyses`, `AnalysisResult` JSON schema keys.
+- `Stage 4:` Build PDF upload + extraction + Gemini single-call analysis API with strict JSON response parsing.
+- `Stage 5:` Implement DB persistence per authenticated user and dashboard history retrieval.
+- `Stage 6:` Implement per-user daily rate limit table + atomic quota consumption before Gemini call + deploy verification.
+- **3. Files Created Per Stage**
+- `Stage 1:` `package.json`
+- `Stage 1:` `next.config.ts`
+- `Stage 1:` `app/layout.tsx`
+- `Stage 1:` `app/(public)/page.tsx`
+- `Stage 1:` `.env.example`
+- `Stage 1:` `lib/supabase/client.ts`
+- `Stage 1:` `lib/supabase/server.ts`
+- `Stage 2:` `app/auth/callback/route.ts`
+- `Stage 2:` `middleware.ts`
+- `Stage 2:` `app/dashboard/page.tsx`
+- `Stage 2:` `components/login-button.tsx`
+- `Stage 2:` `lib/auth-session.ts`
+- `Stage 3:` `types/analysis.ts`
+- `Stage 3:` `app/api/analyze/route.ts`
+- `Stage 3:` `app/api/analyses/route.ts`
+- `Stage 4:` `lib/pdf-extract.ts`
+- `Stage 4:` `lib/gemini-analyze.ts`
+- `Stage 4:` `components/upload-form.tsx`
+- `Stage 5:` `components/analysis-history.tsx`
+- `Stage 5:` `app/api/analyses/route.ts`
+- `Stage 5:` `app/dashboard/page.tsx`
+- `Stage 6:` `lib/rate-limit.ts`
+- `Stage 6:` `supabase/migrations/0001_clauseclear_init.sql`
+- `Stage 6:` `app/api/analyze/route.ts`
+- **4. Database Schema (minimal tables only)**
+- `Table: contract_analyses`
+- `Column: id uuid primary key default gen_random_uuid()`
+- `Column: user_id uuid not null references auth.users(id) on delete cascade`
+- `Column: file_name text not null`
+- `Column: contract_text text not null`
+- `Column: analysis_json jsonb not null`
+- `Column: created_at timestamptz not null default now()`
+- `Index: contract_analyses_user_created_idx on (user_id, created_at desc)`
+- `Table: daily_usage`
+- `Column: user_id uuid not null references auth.users(id) on delete cascade`
+- `Column: usage_date date not null`
+- `Column: analysis_count integer not null default 0`
+- `Column: updated_at timestamptz not null default now()`
+- `Constraint: primary key (user_id, usage_date)`
+- `Function: consume_daily_limit(p_user_id uuid, p_limit integer) returns boolean`
+- `RLS: contract_analyses select/insert only where auth.uid() = user_id`
+- `RLS: daily_usage select/update only where auth.uid() = user_id`
+- **5. External Services/APIs Used**
+- `Supabase Auth` with `Google OAuth provider`
+- `Supabase Postgres` for `contract_analyses` and `daily_usage`
+- `Google Gemini API` for contract analysis JSON output
+- `Vercel` for Next.js deployment
+- **6. Minimal Dependency List**
+- `next`
+- `react`
+- `react-dom`
+- `typescript`
+- `@supabase/supabase-js`
+- `@supabase/ssr`
+- `@google/genai`
+- `pdf-parse`
+- **7. Environment Variables Required**
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+- `DAILY_ANALYSIS_LIMIT`
+- `NEXT_PUBLIC_APP_URL`
+- **8. Deployment Checklist**
+- `Create Supabase project`
+- `Enable Google provider in Supabase Auth`
+- `Set OAuth redirect URL: http://localhost:3000/auth/callback`
+- `Set OAuth redirect URL: https://<vercel-domain>/auth/callback`
+- `Apply SQL migration: 0001_clauseclear_init.sql`
+- `Set Vercel env vars for all required keys`
+- `Deploy to Vercel production`
+- `Verify unauthenticated users are redirected from /dashboard`
+- `Verify authenticated user can upload one PDF and receive JSON keys: summary, risks, obligations, red_flags, section_summaries`
+- `Verify analysis row is saved with correct user_id`
+- `Verify dashboard lists only current user analyses`
+- `Verify daily limit blocks request before Gemini call when quota exhausted`
+- `Assumption: default daily limit = 5 analyses per user per UTC day`
+- `Assumption: default Gemini model = gemini-1.5-pro`
+- `Assumption: single PDF per analyze request`
