@@ -37,6 +37,20 @@ export async function POST(request: Request) {
     const contractText = await extractTextFromPdf(pdfBytes);
     const analysis = await analyzeContractText(contractText);
 
+    const { error: insertError } = await supabase
+      .from("analyses")
+      .insert({
+      user_id: user.id,
+      file_name: file.name,
+      analysis,
+    });
+
+
+    if (insertError) {
+      console.error(insertError);
+      return NextResponse.json({ error: "Failed to save analysis" }, { status: 500 });
+    }
+
     const response: AnalyzeResponse = {
       file_name: file.name,
       analysis,

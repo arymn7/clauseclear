@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+:root {
+  --bg-main: #f7f6f3;
+  --panel: #ffffff;
+  --section-tint: #f1efea;
+  --text-primary: #1c1c1c;
+  --text-secondary: #6b6b6b;
+  --text-muted: #9a9a9a;
+  --accent: #2e4a3d;
+  --accent-hover: #3f6352;
+  --accent-soft: #e8f0ec;
+  --border-subtle: #e6e4df;
+}
+
+html[data-theme="dark"] {
+  --bg-main: #161714;
+  --panel: #1f211d;
+  --section-tint: #2a2d28;
+  --text-primary: #f3f2ee;
+  --text-secondary: #c3c1ba;
+  --text-muted: #9b9992;
+  --accent: #7fa996;
+  --accent-hover: #95b7a6;
+  --accent-soft: #304039;
+  --border-subtle: #393b36;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+body {
+  line-height: 1.6;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+@keyframes book-page-flip {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateY(-150deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateY(-180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes magnify-zoom {
+  0%,
+  100% {
+    transform: translateX(-6px) scale(1);
+  }
+  50% {
+    transform: translateX(8px) scale(1.08);
+  }
+}
+
+.analysis-loader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.analysis-book {
+  position: relative;
+  width: 72px;
+  height: 52px;
+}
+
+.analysis-book-base {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.analysis-book-page {
+  position: absolute;
+  left: 36px;
+  top: 4px;
+  width: 30px;
+  height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--section-tint);
+  transform-origin: left center;
+  animation: book-page-flip 1.4s infinite ease-in-out;
+}
+
+.analysis-book-page.two {
+  animation-delay: 0.35s;
+}
+
+.analysis-magnifier {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  animation: magnify-zoom 1.4s infinite ease-in-out;
+}
+
+.analysis-magnifier::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  bottom: -7px;
+  width: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: rotate(40deg);
+}

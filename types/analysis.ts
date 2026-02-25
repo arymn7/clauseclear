@@ -15,3 +15,11 @@ export type AnalyzeResponse = {
   analysis: AnalysisResult;
   file_name: string;
 };
+
+export type AnalysisHistoryItem = {
+  id: string;
+  user_id: string;
+  file_name: string;
+  analysis: AnalysisResult;
+  created_at: string;
+};

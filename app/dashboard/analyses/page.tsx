@@ -1,10 +1,9 @@
-import AnalysisHistory from "../../components/analysis-history";
-import TopNav from "../../components/top-nav";
-import UploadForm from "../../components/upload-form";
-import { createClient } from "../../lib/supabase/server";
-import type { AnalysisHistoryItem } from "../../types/analysis";
+import AnalysisHistory from "../../../components/analysis-history";
+import TopNav from "../../../components/top-nav";
+import { createClient } from "../../../lib/supabase/server";
+import type { AnalysisHistoryItem } from "../../../types/analysis";
 
-export default async function DashboardPage() {
+export default async function AnalysesPage() {
   const supabase = await createClient();
 
   const {
@@ -26,23 +25,19 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[var(--bg-main)]">
-      <TopNav userEmail={user.email} active="dashboard" />
+      <TopNav userEmail={user.email} active="analyses" />
 
       <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <header className="space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">
-            Contract Analysis
+            Analyses
           </h1>
           <p className="max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
-            Upload a contract to generate structured insights, risks, and obligations.
+            Review previously analyzed contracts in a focused legal workspace.
           </p>
         </header>
 
         <section className="mt-8">
-          <UploadForm />
-        </section>
-
-        <section id="analyses" className="mt-10">
           <AnalysisHistory analyses={analyses} />
         </section>
       </div>
