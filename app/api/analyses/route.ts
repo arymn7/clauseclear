@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "../../../lib/supabase/server";
-import type { AnalysisHistoryItem } from "../../../types/analysis";
+import type { AnalysisHistoryItem, AnalysisRecordRow } from "../../../types/analysis";
 
 export async function GET() {
   try {
@@ -24,7 +24,15 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to load analyses" }, { status: 500 });
     }
 
-    return NextResponse.json({ analyses: (data ?? []) as AnalysisHistoryItem[] });
+    const analyses: AnalysisHistoryItem[] = ((data ?? []) as AnalysisRecordRow[]).map((item) => ({
+      id: item.id,
+      user_id: item.user_id,
+      file_name: item.file_name,
+      analysis: item.analysis_json,
+      created_at: item.created_at,
+    }));
+
+    return NextResponse.json({ analyses });
   } catch {
     return NextResponse.json({ error: "Failed to load analyses" }, { status: 500 });
   }

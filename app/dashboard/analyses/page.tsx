@@ -1,7 +1,7 @@
 import AnalysisHistory from "../../../components/analysis-history";
 import TopNav from "../../../components/top-nav";
 import { createClient } from "../../../lib/supabase/server";
-import type { AnalysisHistoryItem } from "../../../types/analysis";
+import type { AnalysisHistoryItem, AnalysisRecordRow } from "../../../types/analysis";
 
 export default async function AnalysesPage() {
   const supabase = await createClient();
@@ -16,12 +16,18 @@ export default async function AnalysesPage() {
   }
 
   const { data } = await supabase
-    .from("analyses")
-    .select("id,user_id,file_name,analysis,created_at")
+    .from("contract_analyses")
+    .select("id,user_id,file_name,contract_text,analysis_json,created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const analyses: AnalysisHistoryItem[] = data ?? [];
+  const analyses: AnalysisHistoryItem[] = ((data ?? []) as AnalysisRecordRow[]).map((item) => ({
+    id: item.id,
+    user_id: item.user_id,
+    file_name: item.file_name,
+    analysis: item.analysis_json,
+    created_at: item.created_at,
+  }));
 
   return (
     <main className="min-h-screen bg-[var(--bg-main)]">

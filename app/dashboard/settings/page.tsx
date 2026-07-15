@@ -24,7 +24,7 @@ export default async function SettingsPage() {
             Settings
           </h1>
           <p className="max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base">
-            Manage your workspace preferences and account controls.
+            Manage your workspace preferences, review defaults, and account controls.
           </p>
         </header>
 

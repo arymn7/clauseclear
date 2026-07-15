@@ -3,8 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 
 import { createClient } from "../../../lib/supabase/server";
-import { extractTextFromPdf } from "../../../lib/pdf-extract";
-import { analyzeContractText } from "../../../lib/gemini-analyze";
+import { analyzeContractWithPython } from "../../../lib/python-analysis-service";
 import type { AnalyzeResponse } from "../../../types/analysis";
 
 function isPdfFile(file: File) {
@@ -33,18 +32,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Only PDF files are supported" }, { status: 400 });
     }
 
-    const pdfBytes = Buffer.from(await file.arrayBuffer());
-    const contractText = await extractTextFromPdf(pdfBytes);
-    const analysis = await analyzeContractText(contractText);
+    const { contract_text: contractText, analysis } = await analyzeContractWithPython(file);
 
-    const { error: insertError } = await supabase
-      .from("analyses")
-      .insert({
+    const { error: insertError } = await supabase.from("contract_analyses").insert({
       user_id: user.id,
       file_name: file.name,
-      analysis,
+      contract_text: contractText,
+      analysis_json: analysis,
     });
-
 
     if (insertError) {
       console.error(insertError);

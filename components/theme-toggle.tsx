@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
 
@@ -43,16 +43,20 @@ function getInitialTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<Theme>("light");
+function subscribeToHydration() {
+  return () => {};
+}
 
-  useEffect(() => {
-    const initialTheme = getInitialTheme();
-    setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
-    setMounted(true);
-  }, []);
+function getClientHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydratedSnapshot() {
+  return false;
+}
+
+function ThemeToggleButton() {
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
   const toggleTheme = () => {
     const nextTheme: Theme = theme === "light" ? "dark" : "light";
@@ -60,18 +64,6 @@ export default function ThemeToggle() {
     document.documentElement.setAttribute("data-theme", nextTheme);
     window.localStorage.setItem(STORAGE_KEY, nextTheme);
   };
-
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        aria-label="Toggle theme"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--panel)] text-[var(--text-secondary)]"
-      >
-        <SunIcon />
-      </button>
-    );
-  }
 
   return (
     <button
@@ -83,4 +75,26 @@ export default function ThemeToggle() {
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
     </button>
   );
+}
+
+export default function ThemeToggle() {
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydratedSnapshot,
+    getServerHydratedSnapshot,
+  );
+
+  if (!isHydrated) {
+    return (
+      <button
+        type="button"
+        aria-label="Toggle theme"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--panel)] text-[var(--text-secondary)]"
+      >
+        <SunIcon />
+      </button>
+    );
+  }
+
+  return <ThemeToggleButton />;
 }

@@ -20,17 +20,7 @@ function formatTimestamp(ts: string) {
 }
 
 function getAnalysisPayload(item: AnalysisHistoryItem | null): AnalysisResult | null {
-  if (!item) {
-    return null;
-  }
-
-  const analysis = (item as unknown as { analysis?: AnalysisResult; analysis_json?: AnalysisResult })
-    .analysis;
-  const analysisJson = (
-    item as unknown as { analysis?: AnalysisResult; analysis_json?: AnalysisResult }
-  ).analysis_json;
-
-  return analysis ?? analysisJson ?? null;
+  return item?.analysis ?? null;
 }
 
 function EmptyState() {

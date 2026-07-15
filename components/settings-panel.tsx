@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "../lib/supabase/client";
@@ -9,18 +9,100 @@ type SettingsPanelProps = {
   email: string;
 };
 
-export default function SettingsPanel({ email }: SettingsPanelProps) {
+const SETTINGS_STORAGE_KEY = "clauseclear-preferences";
+
+type StoredPreferences = {
+  displayName: string;
+  tone: string;
+  showRiskPriority: boolean;
+  privacyNotice: boolean;
+};
+
+function getDefaultPreferences(email: string): StoredPreferences {
+  return {
+    displayName: email.split("@")[0] || "Workspace User",
+    tone: "balanced",
+    showRiskPriority: true,
+    privacyNotice: true,
+  };
+}
+
+function readStoredPreferences(email: string): StoredPreferences {
+  const fallback = getDefaultPreferences(email);
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
+    if (!stored) {
+      return fallback;
+    }
+
+    const preferences = JSON.parse(stored) as Partial<StoredPreferences>;
+
+    return {
+      displayName:
+        typeof preferences.displayName === "string" && preferences.displayName.trim()
+          ? preferences.displayName
+          : fallback.displayName,
+      tone:
+        preferences.tone === "risk-first" || preferences.tone === "obligations-first"
+          ? preferences.tone
+          : fallback.tone,
+      showRiskPriority:
+        typeof preferences.showRiskPriority === "boolean"
+          ? preferences.showRiskPriority
+          : fallback.showRiskPriority,
+      privacyNotice:
+        typeof preferences.privacyNotice === "boolean"
+          ? preferences.privacyNotice
+          : fallback.privacyNotice,
+    };
+  } catch {
+    window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    return fallback;
+  }
+}
+
+function subscribeToHydration() {
+  return () => {};
+}
+
+function getClientHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydratedSnapshot() {
+  return false;
+}
+
+function SettingsEditor({ email }: SettingsPanelProps) {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState(email.split("@")[0] || "");
-  const [tone, setTone] = useState("balanced");
-  const [showRiskPriority, setShowRiskPriority] = useState(true);
-  const [privacyNotice, setPrivacyNotice] = useState(true);
+  const initialPreferences = readStoredPreferences(email);
+
+  const [displayName, setDisplayName] = useState(initialPreferences.displayName);
+  const [tone, setTone] = useState(initialPreferences.tone);
+  const [showRiskPriority, setShowRiskPriority] = useState(initialPreferences.showRiskPriority);
+  const [privacyNotice, setPrivacyNotice] = useState(initialPreferences.privacyNotice);
   const [message, setMessage] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSave = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setMessage("Preferences saved for this session.");
+
+    const preferences: StoredPreferences = {
+      displayName: displayName.trim() || email.split("@")[0] || "Workspace User",
+      tone,
+      showRiskPriority,
+      privacyNotice,
+    };
+
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(preferences));
+    setDisplayName(preferences.displayName);
+    setMessage("Preferences saved on this device.");
   };
 
   const handleSignOut = async () => {
@@ -37,7 +119,7 @@ export default function SettingsPanel({ email }: SettingsPanelProps) {
       <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--panel)] p-6 sm:p-8">
         <h2 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Workspace Settings</h2>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
-          Adjust your review defaults for a consistent legal workflow.
+          Adjust your review defaults for a consistent legal workflow. These preferences are stored locally in your browser.
         </p>
 
         <form className="mt-6 space-y-5" onSubmit={handleSave}>
@@ -111,4 +193,27 @@ export default function SettingsPanel({ email }: SettingsPanelProps) {
       </section>
     </div>
   );
+}
+
+export default function SettingsPanel({ email }: SettingsPanelProps) {
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydratedSnapshot,
+    getServerHydratedSnapshot,
+  );
+
+  if (!isHydrated) {
+    return (
+      <div className="space-y-6">
+        <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--panel)] p-6 sm:p-8">
+          <h2 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Workspace Settings</h2>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+            Loading your saved workspace preferences.
+          </p>
+        </section>
+      </div>
+    );
+  }
+
+  return <SettingsEditor email={email} />;
 }

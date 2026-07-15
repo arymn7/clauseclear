@@ -1,5 +1,5 @@
 - **Title:** ClauseClear MVP Minimal Implementation Plan
-- **Summary:** Next.js App Router + Supabase Auth + Supabase Postgres + Gemini single-request analysis + per-user daily quota + Vercel deployment in 2-day scope.
+- **Summary:** Next.js App Router + Supabase Auth + Supabase Postgres + Python FastAPI analysis service + Gemini single-request analysis + Vercel-style frontend deployment.
 - **1. Project Folder Structure**
 - `app/layout.tsx`
 - `app/(public)/page.tsx`

@@ -9,8 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ClauseClear",
-  description: "AI-powered contract simplifier",
+  title: {
+    default: "ClauseClear",
+    template: "%s | ClauseClear",
+  },
+  description: "ClauseClear is a contract review workspace that extracts clause-level insights from uploaded PDFs using Gemini and Supabase.",
 };
 
 type RootLayoutProps = {
